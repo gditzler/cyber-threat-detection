@@ -71,8 +71,8 @@ def main(args):
 
     # copy the data to a new dataframe and relabel the data [NORMAL = 1, ATTACK = -1]
     df2 = df.copy()
-    df2['label'][np.where(df2['label'] == 'NORMAL')[0]] = 1
-    df2['label'][np.where(df2['label'] == 'Attack_3a')[0]] = -1
+    df2['label'][np.where(df2['label'] == 'NORMAL')[0]] = 0
+    df2['label'][np.where(df2['label'] == 'Attack_3a')[0]] = 1
 
     # run feature selection 
     data = df2.values
@@ -100,10 +100,14 @@ def main(args):
     te_data_path = file_path[:-4] + '_TEST.pkl'
     tr_stop = int(np.floor(percent_train*len(df2)))
 
+    df2['label'][np.where(df2['label'] == 0)[0]] = 2
+    df2['label'][np.where(df2['label'] == 1)[0]] = -1
+    df2['label'][np.where(df2['label'] == 2)[0]] = 1
+
     # rearrange the data
     all_data = df2.values
-    good = np.where(y==0)[0]
-    malicious = np.where(y==1)[0]
+    good = np.where(y==1)[0]
+    malicious = np.where(y==-1)[0]
     all_data_sorted = np.concatenate((all_data[good, :], all_data[malicious, :]), axis=0)
 
     data_tr = all_data_sorted[:tr_stop]
