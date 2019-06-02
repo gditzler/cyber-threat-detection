@@ -1,5 +1,8 @@
 # files 
 *.pyc
+*.pkl
+*.csv
+*.pdf 
 
 # folders
 # data/
