@@ -1,0 +1,7 @@
+# files 
+*.pyc
+
+# folders
+# data/
+.vscode/
+.ipynb_checkpoints/
