@@ -18,8 +18,11 @@ import warnings
 import argparse
 import numpy as np
 import pandas as pd
+import matplotlib.pylab as plt
 
 from sklearn.feature_selection import mutual_info_classif
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings('ignore')
 
@@ -105,10 +108,12 @@ def main(args):
     df2['label'][np.where(df2['label'] == 2)[0]] = 1
 
     # rearrange the data
+    # rearrange the data
     all_data = df2.values
-    good = np.where(y==1)[0]
-    malicious = np.where(y==-1)[0]
+    good = np.where(all_data[:,0]==1)[0]
+    malicious = np.where(all_data[:,0]==-1)[0]
     all_data_sorted = np.concatenate((all_data[good, :], all_data[malicious, :]), axis=0)
+
 
     data_tr = all_data_sorted[:tr_stop]
     X = data_tr[:, 1:]
@@ -128,6 +133,34 @@ def main(args):
     pickle.dump(data, outfile)
     outfile.close()
     print('Testing Samples: ' + str(len(y)))
+
+
+    # Perform PCA
+    df3 = df.copy()
+    df3['label'][np.where(df3['label'] == 'NORMAL')[0]] = 0
+    df3['label'][np.where(df3['label'] == 'Attack_3a')[0]] = 1
+
+    all_data_3 = df3.values
+
+    X2 = all_data_3[:, 1:]
+    y2 = all_data_3[:, 0]
+
+    scaler = StandardScaler()
+    scaler.fit(X2)
+    X_scaled = scaler.transform(X2)
+
+    pca = PCA(n_components=2)
+    pca.fit(X_scaled) 
+    X_pca = pca.transform(X_scaled)
+
+    plt.figure()
+    plt.scatter(X_pca[y2==0, 0], X_pca[y2==0, 1], color='r', label='Normal')
+    plt.scatter(X_pca[y2==1, 0], X_pca[y2==1, 1], color='b', label='Malicious')
+    plt.legend()
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+    plt.title('Principal Coordinate Analysis')
+    plt.savefig('outputs' + file_path[4:-4] + '_PCA.pdf', format='pdf')
 
     return None
 
