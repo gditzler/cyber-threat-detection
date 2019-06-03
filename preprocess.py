@@ -88,7 +88,7 @@ def main(args):
     Xnew = X[new_indx, :]
     ynew = y[new_indx]
 
-    mi_scores = mutual_info_classif(Xnew, ynew, n_neighbors = 5)
+    mi_scores = mutual_info_classif(Xnew, ynew, n_neighbors = 3)
     feature_ranks = np.argsort(mi_scores)[::-1][:top_k_features]
     print('Feature Ranks')
     p = 0
@@ -103,11 +103,10 @@ def main(args):
     te_data_path = file_path[:-4] + '_TEST.pkl'
     tr_stop = int(np.floor(percent_train*len(df2)))
 
-    df2['label'][np.where(df2['label'] == 0)[0]] = 2
-    df2['label'][np.where(df2['label'] == 1)[0]] = -1
-    df2['label'][np.where(df2['label'] == 2)[0]] = 1
+    df2 = df.copy()
+    df2['label'][np.where(df2['label'] == 'NORMAL')[0]] = 1
+    df2['label'][np.where(df2['label'] == 'Attack_3a')[0]] = -1
 
-    # rearrange the data
     # rearrange the data
     all_data = df2.values
     good = np.where(all_data[:,0]==1)[0]
@@ -118,7 +117,11 @@ def main(args):
     data_tr = all_data_sorted[:tr_stop]
     X = data_tr[:, 1:]
     y = data_tr[:, 0]
-    data = {'X': X, 'y': y, 'features': keep_features}
+
+    scaler = StandardScaler()
+    scaler.fit(X)
+
+    data = {'X': X, 'y': y, 'features': keep_features, 'scalemodel': scaler}
     outfile = open(tr_data_path, 'wb')
     pickle.dump(data, outfile)
     outfile.close()
@@ -128,7 +131,7 @@ def main(args):
     X = data_te[:, 1:]
     y = data_te[:, 0]
 
-    data = {'X': X, 'y': y, 'features': keep_features}
+    data = {'X': X, 'y': y, 'features': keep_features, 'scalemodel': scaler}
     outfile = open(te_data_path, 'wb')
     pickle.dump(data, outfile)
     outfile.close()

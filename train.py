@@ -23,6 +23,7 @@ from sklearn import preprocessing
 from sklearn.ensemble import IsolationForest 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import mutual_info_classif
+from sklearn.preprocessing import StandardScaler
 
 def read_file(file_name):
     '''
@@ -34,7 +35,8 @@ def read_file(file_name):
     X = data['X']
     y = data['y']
     features = data['features']
-    return X, y, features
+    scaler = data['scalemodel']
+    return X, y, features, scaler
 
 def build_parser():
     '''
@@ -83,7 +85,12 @@ def main(args):
     # read in the data file 
     if args.verbose: 
         print('Loading the data file...\n\n')
-    X, _, features = read_file(args.input)   # the _ is for the labels which are not used
+    X, _, features, scaler = read_file(args.input)   # the _ is for the labels which are not used
+
+    # scale the data if the user wants to do so (this flag for scaling should be set if 
+    # the user is implementing the autoencoder. 
+    #if args.scale: 
+    #    X = scaler.transform(X)
 
     # if we are going to run feature selection then grab the features that were selected
     if args.fs:
@@ -97,7 +104,7 @@ def main(args):
     if args.classifier == 'if': 
         clfr = IsolationForest(n_estimators=100, 
                                max_samples='auto', 
-                               contamination=0.05, 
+                               contamination=0.1, 
                                max_features=1, 
                                bootstrap=True, 
                                random_state=None, 
@@ -107,15 +114,15 @@ def main(args):
 
     if args.verbose: 
         avg_score = np.mean(clfr.predict(X))
-        print('The average IF score for normal training data is: ' + str(avg_score))
+        print('The average IF score for normal training data is: ' + str(avg_score) + '\n\n')
      
     model = {'clfr': clfr, 'features': features, 'feature_selection': args.fs}
+    print(model)
     outfile = open(args.model, 'wb')
     pickle.dump(model, outfile)
     outfile.close()
 
     if args.verbose: 
-        print('DONE! ')
         print('The model has been saved to ' + args.model)
 
     return None 

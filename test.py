@@ -43,6 +43,8 @@ def read_model(file_name):
     clfr = data['clfr']
     fs_on = data['feature_selection']
     features = data['features']
+    #scaler = data['scalemodel']
+    #scale_on = data['scale']
     return clfr, fs_on, features
 
 
@@ -66,14 +68,18 @@ def build_parser():
 def main(args): 
     # read in the data and get the feature subset  
     X, y, features = read_file(args.input) 
-    #y[y==1] = -1  # change the labels to be compatible with the isolation forest (change in the future) 
-    #y[y==1] = 1  # change the labels to be compatible with the isolation forest (change in the future) 
     attack_start = np.where(y==-1)[0][0]
-    #print(attack_start)
 
     # read the model 
     clfr, fs_on, features = read_model(args.model)
     
+    # scale the data if the user wants to do so (this flag for scaling should be set if 
+    # the user is implementing the autoencoder. 
+    #if scale_on: 
+    #    X = scaler.transform(X)
+
+    # if feature selection is turn on then use the subset of features from the preprocessing 
+    # script.     
     if fs_on: 
         X = X[:, features]
 
@@ -82,10 +88,11 @@ def main(args):
 
     detection_error = len(np.where(y != yhat)[0])*1.0/len(y)
 
+    # plot out the anomoly score for the detector over time and save the ouputs (class, yhat 
+    # and ahat). 
     plt.figure()
     plt.plot(ahat, color='red', label='A-score')
     plt.plot([attack_start, attack_start], [-1, 1], color='black', label='Attack Start')
-    #plt.plot(yhat, color='blue', label='Prediction')
     plt.legend()
     plt.xlabel('Samples Processed')
     plt.title('MLABA Classification Results (Error='+str(100*detection_error)+')')
@@ -95,7 +102,6 @@ def main(args):
     all_output = np.stack((y, yhat, ahat), axis=1)
     np.savetxt(args.output + '.csv', all_output, delimiter=',')
 
-    print('Done')
     return None
 
 
