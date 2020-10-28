@@ -88,6 +88,7 @@ def main(args):
     Xnew = X[new_indx, :]
     ynew = y[new_indx]
 
+    # TODO add scaling here
     mi_scores = mutual_info_classif(Xnew, ynew, n_neighbors = 3)
     feature_ranks = np.argsort(mi_scores)[::-1][:top_k_features]
     print('Feature Ranks')
@@ -120,6 +121,7 @@ def main(args):
 
     scaler = StandardScaler()
     scaler.fit(X)
+    X = scaler.transform(X)
 
     data = {'X': X, 'y': y, 'features': keep_features, 'scalemodel': scaler}
     outfile = open(tr_data_path, 'wb')
@@ -130,6 +132,7 @@ def main(args):
     data_te = all_data_sorted[tr_stop:]
     X = data_te[:, 1:]
     y = data_te[:, 0]
+    X = scaler.transform(X)   # maybe delete
 
     data = {'X': X, 'y': y, 'features': keep_features, 'scalemodel': scaler}
     outfile = open(te_data_path, 'wb')
